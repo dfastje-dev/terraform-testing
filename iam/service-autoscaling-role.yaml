@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: IAM role for ECS service application autoscaling
+Parameters:
+  Env:
+    Type: String
+Resources:
+  AppAutoScalingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ecs-svc-asg-${Env}
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: application-autoscaling.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: AppAutoScalingPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - application-autoscaling:*
+                  - cloudwatch:DescribeAlarms
+                  - cloudwatch:PutMetricAlarm
+                  - cloudwatch:DeleteAlarms
+                  - ecs:DescribeServices
+                  - ecs:UpdateService
+                Resource: '*'
+      Tags:
+        - Key: Env
+          Value: !Ref Env
+Outputs:
+  AppAutoScalingRoleArn:
+    Description: ARN of the application autoscaling role
+    Value: !GetAtt AppAutoScalingRole.Arn
